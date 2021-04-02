@@ -21,4 +21,4 @@ Installing process:
 	For numpy
 	pip install tkinter
 
-Edit line 20 to the path to your TF saved model in NNlabelImg.py
+Move the contents of your TF Object Detection Model into TFmodel

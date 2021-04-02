@@ -17,7 +17,7 @@ imgList = []
 
 imgFolder = ''
 
-PATH_TO_MODEL_DIR = PATH_TO_TF_SAVED_MODEL + "/saved_model"
+PATH_TO_MODEL_DIR = scriptLoc + "/TFmodel/" + "/saved_model"
 
 class MainApplication(tk.Frame):
     bboxList = []
