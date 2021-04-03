@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from PIL import Image
+import os
 
 class CreateXmlFile:
 
@@ -54,5 +55,5 @@ class CreateXmlFile:
         tree = ET.ElementTree(annotation)
 
         xmlstr = minidom.parseString(ET.tostring(annotation)).toprettyxml(indent="    ")
-        with open(self.savedir + "/" + filename[:len(filename) - 4] + ".xml", "w") as f:
+        with open(os.path.join(self.savedir, filename[:len(filename) - 4] + ".xml"), "w") as f:
             f.write(xmlstr[23:])

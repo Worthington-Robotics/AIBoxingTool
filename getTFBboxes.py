@@ -44,7 +44,7 @@ class GetTFBBoxes():
         detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
         for j in range(len(detections['detection_scores'])):
-            if(detections['detection_scores'][j] > .98):
+            if(detections['detection_scores'][j] > .30):
                 (ymin, xmin, ymax, xmax) = tuple(detections['detection_boxes'][j])
                 detectionName = self.labelMapPath[int(detections['detection_classes'][j]) - 1]
                 tfBoxes.append((detectionName, xmin, xmax, ymin, ymax))

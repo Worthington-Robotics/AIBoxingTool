@@ -89,7 +89,7 @@ class MainApplication(tk.Frame):
         self.start_x = event.x
         self.start_y = event.y
 
-        tempId = self.mainPanel.create_rectangle(self.x, self.y, 1, 1, outline="green", width=5)
+        tempId = self.mainPanel.create_rectangle(self.x, self.y, 1, 1, outline="green", width=2)
         self.bboxIdList.append(tempId)
 
     def on_move_press(self, event):
@@ -150,7 +150,7 @@ class MainApplication(tk.Frame):
         bboxes = self.tfBoxes.getBBoxData(self.imgFolder + "/" + self.imgList[self.currentImg])
         for bbox in bboxes:
             (self.bboxName, xmin, xmax, ymin, ymax) = bbox
-            tempId = self.mainPanel.create_rectangle(xmin * self.imgW, ymin * self.imgH, xmax * self.imgW, ymax * self.imgH, outline="green", width = 5)
+            tempId = self.mainPanel.create_rectangle(xmin * self.imgW, ymin * self.imgH, xmax * self.imgW, ymax * self.imgH, outline="green", width = 2)
             self.bboxIdList.append(tempId)
             self.bboxList.append([self.bboxName, xmin * self.orgW, ymin * self.orgH, xmax * self.orgW, ymax * self.orgH])
             self.listbox.insert(tk.END, self.bboxName)
