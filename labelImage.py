@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
 from PIL import Image, ImageTk
-from getTFBboxes import GetTFBBoxes
-from createDataFile import CreateXmlFile
+from getBoxes import GetBoxes
+from createDataFile import GenerateFile
 import os
 
 scriptLoc = os.path.dirname(os.path.realpath(__file__))
@@ -20,17 +20,17 @@ imgFolder = ''
 PATH_TO_MODEL_DIR = scriptLoc + "\model\saved_model"
 
 class MainApplication(tk.Frame):
-    bboxList = []
+    boxList = []
     bboxIdList = []
     imgList = []
     imgFolder = ''
-    bboxName = ''
+    label = ''
     currentImg = 0
     tkimg = None
     saveFolder = ''
 
     def nextImage(self):
-        self.saveXML()
+        self.saveData()
         self.clearBBoxes()
         self.currentImg += 1
         self.loadImage()
@@ -49,16 +49,18 @@ class MainApplication(tk.Frame):
         self.prevImage(self)
 
     def saveDir(self):
-        self.saveFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
+        # self.saveFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
+        self.saveFolder = "C:/Users/gfang/Desktop/test"
 
     def getFolderName(self):
-        self.imgFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
+        # TODO Hardcoded
+        self.imgFolder = "C:/Users/gfang/Downloads/Images/images"
         self.loadDir()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg + 1, len(self.imgList)))
 
     def setBBoxNameInput(self, textbox):
         result = textbox.get("1.0","end")
-        self.bboxName = result
+        self.label = result
 
     def loadDir(self):
         self.imgList = []
@@ -76,7 +78,7 @@ class MainApplication(tk.Frame):
         self.start_x = event.x
         self.start_y = event.y
 
-        tempId = self.mainPanel.create_rectangle(self.x, self.y, 1, 1, outline="green", width=5)
+        tempId = self.mainPanel.create_rectangle(self.x, self.y, 1, 1, outline="green", width=2)
         self.bboxIdList.append(tempId)
 
     def on_move_press(self, event):
@@ -105,14 +107,14 @@ class MainApplication(tk.Frame):
         else:
             ymin = self.mousey
             ymax = self.start_y
-        self.bboxName = simpledialog.askstring("Input", "Bounding Box Name", parent = window)
-        if self.bboxName is None:
+        self.label = simpledialog.askstring("Input", "Bounding Box Name", parent = window)
+        if self.label is None:
             self.mainPanel.delete(self.bboxIdList[len(self.bboxIdList) - 1])
             self.bboxIdList.pop()
             print(self.bboxIdList)
             return
-        self.bboxList.append([self.bboxName, xmin / self.imgW * self.orgW, ymin / self.imgH * self.orgH, xmax / self.imgW * self.orgW, ymax / self.imgH * self.orgH])
-        self.listbox.insert(tk.END, self.bboxName)
+        self.boxList.append([self.label, xmin / self.imgW, ymin / self.imgH, xmax / self.imgW, ymax / self.imgH])
+        self.listbox.insert(tk.END, self.label)
 
     def loadImage(self):
         imageName = self.imgList[self.currentImg]
@@ -120,11 +122,11 @@ class MainApplication(tk.Frame):
         self.orgW = img.width
         self.orgH = img.height
         if(img.height < img.width):
-            self.imgW = 400
+            self.imgW = 800
             self.imgRatio = float(img.width) / 1000
             self.imgH = img.height / self.imgRatio
         else:
-            self.imgH = 400
+            self.imgH = 800
             self.imgRatio = float(img.height) / 1000
             self.imgW = img.width / self.imgRatio
         img = img.resize((int(self.imgW), int(self.imgH)), Image.ANTIALIAS)
@@ -134,13 +136,15 @@ class MainApplication(tk.Frame):
         self.drawAIBoxes()
 
     def drawAIBoxes(self):
-        bboxes = self.tfBoxes.getBBoxData(self.imgFolder + "/" + self.imgList[self.currentImg])
-        for bbox in bboxes:
-            (self.bboxName, xmin, xmax, ymin, ymax) = bbox
-            tempId = self.mainPanel.create_rectangle(xmin * self.imgW, ymin * self.imgH, xmax * self.imgW, ymax * self.imgH, outline="green", width = 5)
+        boxes = self.yoloBoxes.getBoundingData(self.imgFolder + "/" + self.imgList[self.currentImg])
+        for box in boxes:
+            (self.label, minX, minY, maxX, maxY) = box
+            # Get box color based off of class name
+            color = self.label.split("-")[0]
+            tempId = self.mainPanel.create_rectangle(minX * self.imgW, minY * self.imgH, maxX * self.imgW, maxY * self.imgH, outline=color, width = 2)
             self.bboxIdList.append(tempId)
-            self.bboxList.append([self.bboxName, xmin * self.orgW, ymin * self.orgH, xmax * self.orgW, ymax * self.orgH])
-            self.listbox.insert(tk.END, self.bboxName)
+            self.boxList.append([self.label, minX, minY, maxX, maxY])
+            self.listbox.insert(tk.END, self.label)
 
     def delBBox(self):
         sel = self.listbox.curselection()
@@ -149,22 +153,22 @@ class MainApplication(tk.Frame):
         idx = int(sel[0])
         self.mainPanel.delete(self.bboxIdList[idx])
         self.bboxIdList.pop(idx)
-        self.bboxList.pop(idx)
+        self.boxList.pop(idx)
         self.listbox.delete(idx)
 
     def clearBBoxes(self):
         for idx in range(len(self.bboxIdList)):
             self.mainPanel.delete(self.bboxIdList[idx])
-        self.listbox.delete(0, len(self.bboxList))
+        self.listbox.delete(0, len(self.boxList))
         self.bboxIdList = []
-        self.bboxList = []
+        self.boxList = []
 
     def clearBBoxesKeybind(self, event):
         for idx in range(len(self.bboxIdList)):
             self.mainPanel.delete(self.bboxIdList[idx])
-        self.listbox.delete(0, len(self.bboxList))
+        self.listbox.delete(0, len(self.boxList))
         self.bboxIdList = []
-        self.bboxList = []
+        self.boxList = []
 
     def bboxSelect(self, event):
         self.revertColors(self)
@@ -182,16 +186,14 @@ class MainApplication(tk.Frame):
             self.mainPanel.itemconfig(bbox, outline="green")
         return
 
-    def saveXML(self):
-        self.createXML = CreateXmlFile(self.saveFolder)
+    def saveData(self):
+        self.createFile = GenerateFile(self.saveFolder)
         filename = self.imgList[self.currentImg]
-        self.createXML.generateXML(self.imgFolder, filename, self.bboxList)
+        self.createFile.generateTXT(self.imgFolder, filename, self.boxList)
         return
 
     def saveXMLKeyBind(self, event):
-        self.createXML = CreateXmlFile(self.saveFolder)
-        filename = self.imgList[self.currentImg]
-        self.createXML.generateXML(self.imgFolder, filename, self.bboxList)
+        self.saveData(self)
         return
 
     def goToImg(self):
@@ -205,7 +207,7 @@ class MainApplication(tk.Frame):
         self.parent = parent
         self.frame = tk.Frame(parent)
 
-        self.tfBoxes = GetTFBBoxes(PATH_TO_MODEL_DIR, ['powercell']) # The list should be the label map
+        self.yoloBoxes = GetBoxes(PATH_TO_MODEL_DIR)
         
         self.mousex = 0
         self.mousey = 0
@@ -234,7 +236,7 @@ class MainApplication(tk.Frame):
         self.openDirButton.grid(row=2, column=0)
         self.saveDirButton = tk.Button(window, text="Save Dir", font=("ariel", 8), image=self.folder_photo, command=self.saveDir, compound=tk.TOP)
         self.saveDirButton.grid(row=3, column=0)
-        self.saveXMLButton = tk.Button(window, text="Save XML", font=("ariel", 8), command=self.saveXML)
+        self.saveXMLButton = tk.Button(window, text="Save XML", font=("ariel", 8), command=self.saveData)
         self.saveXMLButton.grid(row=4, column=0)
         self.deleteBboxButton = tk.Button(window, text="Delete Bbox", font=("ariel", 8), command=self.delBBox, compound=tk.TOP)
         self.deleteBboxButton.grid(row=1, column=3)

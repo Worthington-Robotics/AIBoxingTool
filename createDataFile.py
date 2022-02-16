@@ -1,23 +1,20 @@
-class CreateXmlFile:
+class GenerateFile:
     def __init__(self, savedir):
         self.savedir = savedir
 
-    def generateXML(self, filedir, filename, objects):
+    def generateTXT(self, filedir, filename, objects):
         text = ""
-        for bbox in objects:
+        classLookup = ["", "blue-tennis-ball", "red-tennis-ball"]
+        for obj in objects:
+            (label, minX, minY, maxX, maxY) = obj
             # Get elements from list of stuff
-            classnum = bbox[0]
-            xmin = bbox[1]
-            ymin = bbox[2]
-            xmax = bbox[3]
-            ymax = bbox[4]
-            # create the line of text
-            lineText = (str(classnum) + " " +
-                    str(xmin) + " " +
-                    str(ymin) + " " +
-                    str(xmax) + " " +
-                    str(ymax)
-                    )
+            labelNum = (classLookup.index(label)) if classLookup.index(label) != -1 else 0
+            # Generate in format
+            lineText = (str(labelNum) + " " +
+                    str((maxX + minX) / 2) + " " +
+                    str((maxY + minY) / 2) + " " +
+                    str(maxX - minX) + " " +
+                    str(maxY - minY))
             # Check if text is empty, if so, no newline
             if text == "": text += lineText
             else: text += ("\n" + lineText)
