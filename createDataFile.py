@@ -3,7 +3,6 @@ from xml.dom import minidom
 from PIL import Image
 
 class CreateXmlFile:
-
     def __init__(self, savedir):
         self.savedir = savedir
 

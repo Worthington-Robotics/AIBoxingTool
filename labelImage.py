@@ -3,13 +3,13 @@ from tkinter import filedialog
 from tkinter import simpledialog
 from PIL import Image, ImageTk
 from getTFBboxes import GetTFBBoxes
-from createXmlFile import CreateXmlFile
+from createDataFile import CreateXmlFile
 import os
 
 scriptLoc = os.path.dirname(os.path.realpath(__file__))
 
 window = tk.Tk()
-window.title("NNlabelImg")
+window.title("Image Labeler")
 
 COLORS = ['red', 'blue', 'yellow', 'pink', 'cyan', 'green', 'black']
 
@@ -17,7 +17,7 @@ imgList = []
 
 imgFolder = ''
 
-PATH_TO_MODEL_DIR = scriptLoc + "/TFmodel/" + "/saved_model"
+PATH_TO_MODEL_DIR = scriptLoc + "\model\saved_model"
 
 class MainApplication(tk.Frame):
     bboxList = []
@@ -31,33 +31,22 @@ class MainApplication(tk.Frame):
 
     def nextImage(self):
         self.saveXML()
-        self.clearBboxes()
+        self.clearBBoxes()
         self.currentImg += 1
         self.loadImage()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg, len(self.imgList)))
-    
     def nextImageKeybind(self, event):
-        self.saveXML()
-        self.clearBboxes()
-        self.currentImg += 1
-        self.loadImage()
-        self.imgNum.config(text="Image {}/{}".format(self.currentImg, len(self.imgList)))
+        self.nextImage(self)
         
     def prevImage(self):
         if self.currentImg == 0:
             return
-        self.clearBboxes()
+        self.clearBBoxes()
         self.currentImg -= 1
         self.loadImage()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg + 1, len(self.imgList)))
-
     def prevImageKeybind(self, event):
-        if self.currentImg == 0:
-            return
-        self.clearBboxes()
-        self.currentImg -= 1
-        self.loadImage()
-        self.imgNum.config(text="Image {}/{}".format(self.currentImg + 1, len(self.imgList)))
+        self.prevImage(self)
 
     def saveDir(self):
         self.saveFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
@@ -72,20 +61,18 @@ class MainApplication(tk.Frame):
         self.bboxName = result
 
     def loadDir(self):
-        # self.imageList = glob.iglob(self.imgFolder + '**/*.jpg', recursive=True)
-        # self.imageList = sorted(self.imageList)
         self.imgList = []
         for filename in os.listdir(self.imgFolder):
             if(filename.endswith(".jpg") or filename.endswith(".png")):
                 self.imgList.append(filename)
         if len(self.imgList) == 0:
-            print("No jpg or png photos in dir")
+            print("No jpg/png images in directory.")
             return
         self.loadImage()
         
-    #Draw BBox Commands
+    # Draw BBox Commands
     def on_button_press(self, event):
-        # save mouse drag start position
+        # Save mouse drag start position
         self.start_x = event.x
         self.start_y = event.y
 
@@ -95,7 +82,7 @@ class MainApplication(tk.Frame):
     def on_move_press(self, event):
         curX, curY = (event.x, event.y)
 
-        # expand rectangle as you drag the mouse
+        # Expand rectangle as you drag the mouse
         self.mainPanel.coords(self.bboxIdList[len(self.bboxIdList) - 1], self.start_x, self.start_y, curX, curY)
     
     def mouse_move(self, event):
@@ -133,11 +120,11 @@ class MainApplication(tk.Frame):
         self.orgW = img.width
         self.orgH = img.height
         if(img.height < img.width):
-            self.imgW = 1000
+            self.imgW = 400
             self.imgRatio = float(img.width) / 1000
             self.imgH = img.height / self.imgRatio
         else:
-            self.imgH = 1000
+            self.imgH = 400
             self.imgRatio = float(img.height) / 1000
             self.imgW = img.width / self.imgRatio
         img = img.resize((int(self.imgW), int(self.imgH)), Image.ANTIALIAS)
@@ -165,14 +152,14 @@ class MainApplication(tk.Frame):
         self.bboxList.pop(idx)
         self.listbox.delete(idx)
 
-    def clearBboxes(self):
+    def clearBBoxes(self):
         for idx in range(len(self.bboxIdList)):
             self.mainPanel.delete(self.bboxIdList[idx])
         self.listbox.delete(0, len(self.bboxList))
         self.bboxIdList = []
         self.bboxList = []
 
-    def clearBboxesKeybind(self, event):
+    def clearBBoxesKeybind(self, event):
         for idx in range(len(self.bboxIdList)):
             self.mainPanel.delete(self.bboxIdList[idx])
         self.listbox.delete(0, len(self.bboxList))
@@ -251,7 +238,7 @@ class MainApplication(tk.Frame):
         self.saveXMLButton.grid(row=4, column=0)
         self.deleteBboxButton = tk.Button(window, text="Delete Bbox", font=("ariel", 8), command=self.delBBox, compound=tk.TOP)
         self.deleteBboxButton.grid(row=1, column=3)
-        self.clearBboxButton = tk.Button(window, text="Clear Bboxes", font=("ariel", 8), command=self.clearBboxes, compound=tk.TOP)
+        self.clearBboxButton = tk.Button(window, text="Clear Bboxes", font=("ariel", 8), command=self.clearBBoxes, compound=tk.TOP)
         self.clearBboxButton.grid(row=2, column=3)
         self.resetAiBboxes = tk.Button(window, text="Reset Bounding Boxes", font=("ariel", 8), command=self.drawAIBoxes)
         self.resetAiBboxes.grid(row=3, column=3)
@@ -289,7 +276,7 @@ class MainApplication(tk.Frame):
         window.bind("<Control-s>", self.saveXMLKeyBind)
         window.bind("<Key-d>", self.nextImageKeybind)
         window.bind("<Key-a>", self.prevImageKeybind)
-        window.bind("<Key-c>", self.clearBboxesKeybind)
+        window.bind("<Key-c>", self.clearBBoxesKeybind)
 
 if __name__ == '__main__':
     mainApp = MainApplication(window)
