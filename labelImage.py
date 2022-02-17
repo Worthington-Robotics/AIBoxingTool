@@ -36,7 +36,7 @@ class MainApplication(tk.Frame):
         self.loadImage()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg, len(self.imgList)))
     def nextImageKeybind(self, event):
-        self.nextImage(self)
+        self.nextImage()
         
     def prevImage(self):
         if self.currentImg == 0:
@@ -45,16 +45,15 @@ class MainApplication(tk.Frame):
         self.currentImg -= 1
         self.loadImage()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg + 1, len(self.imgList)))
-    def prevImageKeybind(self, event):
-        self.prevImage(self)
+    def prevImageKeybind(self, event, other):
+        self.prevImage()
 
     def saveDir(self):
-        # self.saveFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
-        self.saveFolder = "C:/Users/gfang/Desktop/test"
+        self.saveFolder = filedialog.askdirectory(initialdir = "/", title = "Select Save Directory")
 
     def getFolderName(self):
         # TODO Hardcoded
-        self.imgFolder = "C:/Users/gfang/Downloads/Images/images"
+        self.imgFolder = filedialog.askdirectory(initialdir = "/", title = "Select Image Directory")
         self.loadDir()
         self.imgNum.config(text="Image {}/{}".format(self.currentImg + 1, len(self.imgList)))
 
@@ -108,6 +107,12 @@ class MainApplication(tk.Frame):
             ymin = self.mousey
             ymax = self.start_y
         self.label = simpledialog.askstring("Input", "Bounding Box Name", parent = window)
+        # check if label is r or b or red or blue
+        print(self.label)
+        if self.label == 'r' or self.label == 'red':
+            self.label = "red-tennis-ball"
+        elif self.label == 'b' or self.label == 'blue':
+            self.label = "blue-tennis-ball"
         if self.label is None:
             self.mainPanel.delete(self.bboxIdList[len(self.bboxIdList) - 1])
             self.bboxIdList.pop()
@@ -193,8 +198,7 @@ class MainApplication(tk.Frame):
         return
 
     def saveXMLKeyBind(self, event):
-        self.saveData(self)
-        return
+        self.saveData()
 
     def goToImg(self):
         imgNum = int(self.imgEntry.get())
