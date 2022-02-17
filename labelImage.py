@@ -108,7 +108,6 @@ class MainApplication(tk.Frame):
             ymax = self.start_y
         self.label = simpledialog.askstring("Input", "Bounding Box Name", parent = window)
         # check if label is r or b or red or blue
-        print(self.label)
         if self.label == 'r' or self.label == 'red':
             self.label = "red-tennis-ball"
         elif self.label == 'b' or self.label == 'blue':
